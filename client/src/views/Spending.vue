@@ -47,17 +47,17 @@
         <div class="chart-container">
           <div class="bar-chart">
             <div class="y-axis">
-              <span>{{ currencySymbol }}{{ maxRevenueValue }}K</span>
-              <span>{{ currencySymbol }}{{ Math.round(maxRevenueValue * 0.75) }}K</span>
-              <span>{{ currencySymbol }}{{ Math.round(maxRevenueValue * 0.5) }}K</span>
-              <span>{{ currencySymbol }}{{ Math.round(maxRevenueValue * 0.25) }}K</span>
-              <span>{{ currencySymbol }}0</span>
+              <span>{{ formatAxisK(maxRevenueValue * 1000) }}</span>
+              <span>{{ formatAxisK(maxRevenueValue * 1000 * 0.75) }}</span>
+              <span>{{ formatAxisK(maxRevenueValue * 1000 * 0.5) }}</span>
+              <span>{{ formatAxisK(maxRevenueValue * 1000 * 0.25) }}</span>
+              <span>{{ formatAxisK(0) }}</span>
             </div>
             <div class="chart-area">
               <div v-for="month in monthlyRevenue" :key="month.month" class="bar-group-revenue">
                 <div class="revenue-bars">
-                  <div class="revenue-bar" :style="{ height: getRevenueBarHeight(month.revenue) + '%' }" :title="`Revenue: ${currencySymbol}${month.revenue.toLocaleString()}`"></div>
-                  <div class="cost-bar" :style="{ height: getRevenueBarHeight(month.costs) + '%' }" :title="`Costs: ${currencySymbol}${month.costs.toLocaleString()}`"></div>
+                  <div class="revenue-bar" :style="{ height: getRevenueBarHeight(month.revenue) + '%' }" :title="`Revenue: ${formatCurrency(month.revenue)}`"></div>
+                  <div class="cost-bar" :style="{ height: getRevenueBarHeight(month.costs) + '%' }" :title="`Costs: ${formatCurrency(month.costs)}`"></div>
                 </div>
                 <span class="bar-label">{{ translateMonth(month.month) }}</span>
               </div>
@@ -80,20 +80,20 @@
         <div class="chart-container">
           <div class="bar-chart">
             <div class="y-axis">
-              <span>{{ currencySymbol }}25K</span>
-              <span>{{ currencySymbol }}20K</span>
-              <span>{{ currencySymbol }}15K</span>
-              <span>{{ currencySymbol }}10K</span>
-              <span>{{ currencySymbol }}5K</span>
-              <span>{{ currencySymbol }}0</span>
+              <span>{{ formatAxisK(25000) }}</span>
+              <span>{{ formatAxisK(20000) }}</span>
+              <span>{{ formatAxisK(15000) }}</span>
+              <span>{{ formatAxisK(10000) }}</span>
+              <span>{{ formatAxisK(5000) }}</span>
+              <span>{{ formatAxisK(0) }}</span>
             </div>
             <div class="chart-area">
               <div v-for="month in monthlySpending" :key="month.month" class="bar-group">
                 <div class="stacked-bar" @click="showCostDetail(month)">
-                  <div class="bar-segment procurement" :style="{ height: getBarHeight(month.procurement) + '%' }" :title="`Procurement: ${currencySymbol}${month.procurement.toLocaleString()}`"></div>
-                  <div class="bar-segment operational" :style="{ height: getBarHeight(month.operational) + '%' }" :title="`Operational: ${currencySymbol}${month.operational.toLocaleString()}`"></div>
-                  <div class="bar-segment labor" :style="{ height: getBarHeight(month.labor) + '%' }" :title="`Labor: ${currencySymbol}${month.labor.toLocaleString()}`"></div>
-                  <div class="bar-segment overhead" :style="{ height: getBarHeight(month.overhead) + '%' }" :title="`Overhead: ${currencySymbol}${month.overhead.toLocaleString()}`"></div>
+                  <div class="bar-segment procurement" :style="{ height: getBarHeight(month.procurement) + '%' }" :title="`Procurement: ${formatCurrency(month.procurement)}`"></div>
+                  <div class="bar-segment operational" :style="{ height: getBarHeight(month.operational) + '%' }" :title="`Operational: ${formatCurrency(month.operational)}`"></div>
+                  <div class="bar-segment labor" :style="{ height: getBarHeight(month.labor) + '%' }" :title="`Labor: ${formatCurrency(month.labor)}`"></div>
+                  <div class="bar-segment overhead" :style="{ height: getBarHeight(month.overhead) + '%' }" :title="`Overhead: ${formatCurrency(month.overhead)}`"></div>
                 </div>
                 <span class="bar-label">{{ translateMonth(month.month) }}</span>
               </div>
@@ -112,7 +112,7 @@
             <div v-for="category in categorySpending" :key="category.category" class="category-item">
               <div class="category-info">
                 <div class="category-name">{{ translateCategory(category.category) }}</div>
-                <div class="category-amount">{{ currencySymbol }}{{ category.amount.toLocaleString() }}</div>
+                <div class="category-amount">{{ formatCurrency(category.amount) }}</div>
               </div>
               <div class="category-bar-container">
                 <div class="category-bar" :style="{ width: category.percentage + '%' }"></div>
@@ -154,7 +154,7 @@
                   <td class="transaction-description">{{ transaction.description }}</td>
                   <td class="transaction-vendor">{{ transaction.vendor }}</td>
                   <td class="transaction-date">{{ formatDateShort(transaction.date) }}</td>
-                  <td class="transaction-amount text-right">{{ currencySymbol }}{{ transaction.amount.toLocaleString() }}</td>
+                  <td class="transaction-amount text-right">{{ formatCurrency(transaction.amount) }}</td>
                 </tr>
               </tbody>
             </table>
@@ -176,7 +176,7 @@ import { ref, onMounted, watch, computed } from 'vue'
 import { api } from '../api'
 import { useFilters } from '../composables/useFilters'
 import { useI18n } from '../composables/useI18n'
-import { formatCurrency as formatCurrencyUtil } from '../utils/currency'
+import { formatCurrency as formatCurrencyUtil, convertAmount } from '../utils/currency'
 import CostDetailModal from '../components/CostDetailModal.vue'
 
 export default {
@@ -226,14 +226,27 @@ export default {
       return allCategorySpending.value
     })
 
+    // Month bucketing must NOT use Date getters/toISOString(): order_date is a zone-less
+    // datetime ("2025-12-31T15:02:00") that parses as LOCAL time, while transactions.date is
+    // date-only ("2025-09-01") and parses as UTC, so any Date-based month is timezone dependent
+    // and shifts across month/year boundaries. The written YYYY-MM prefix is authoritative.
+    // Returns null for unparseable values so they are excluded.
+    const monthKey = (value) => {
+      if (typeof value !== 'string' || !/^\d{4}-\d{2}/.test(value)) return null
+      return value.slice(0, 7)
+    }
+    // Year of the data / period filter options (FilterBar offers 2025-01..2025-12)
+    // Must match the year in the FilterBar period options (components/FilterBar.vue).
+    const DATA_YEAR = '2025'
+
     const recentTransactions = computed(() => {
       if (selectedPeriod.value === 'all') {
         return allTransactions.value
       }
       // Filter transactions by selected month
       return allTransactions.value.filter(t => {
-        const transactionMonth = new Date(t.date).toISOString().slice(0, 7)
-        return transactionMonth === selectedPeriod.value
+        // Invalid/unparseable dates yield a null key and are excluded
+        return monthKey(t.date) === selectedPeriod.value
       })
     })
 
@@ -270,8 +283,7 @@ export default {
 
       // Filter orders by selected month
       return allOrders.value.filter(order => {
-        const orderMonth = new Date(order.order_date).toISOString().slice(0, 7)
-        return orderMonth === selectedPeriod.value
+        return monthKey(order.order_date) === selectedPeriod.value
       })
     })
 
@@ -321,8 +333,11 @@ export default {
 
       // Calculate revenue from orders
       allOrders.value.forEach(order => {
-        const orderDate = new Date(order.order_date)
-        const monthIndex = orderDate.getMonth()
+        // Use the string prefix, not Date getters (see monthKey): keeps the bars consistent
+        // with the period filter/summary cards in every timezone. Only count the data year.
+        const key = monthKey(order.order_date)
+        if (!key || key.slice(0, 4) !== DATA_YEAR) return
+        const monthIndex = parseInt(key.slice(5, 7), 10) - 1
         if (monthIndex >= 0 && monthIndex < 12) {
           revenueByMonth[monthIndex].revenue += order.total_value || 0
         }
@@ -379,6 +394,12 @@ export default {
       return formatCurrencyUtil(value, currentCurrency.value)
     }
 
+    // Axis label in thousands of the display currency (values are USD)
+    const formatAxisK = (usd) => {
+      const sym = currentCurrency.value === 'JPY' ? '¥' : '$'
+      return `${sym}${Math.round(convertAmount(usd, currentCurrency.value) / 1000).toLocaleString()}K`
+    }
+
     const currencySymbol = computed(() => {
       return currentCurrency.value === 'JPY' ? '¥' : '$'
     })
@@ -390,21 +411,39 @@ export default {
 
     const getRevenueBarHeight = (value) => {
       const maxValue = maxRevenueValue.value * 1000
+      if (!maxValue) return 0 // avoid NaN/Infinity when there is no revenue
       return (value / maxValue) * 100
     }
 
+    // Read Y-M-D from the string prefix when present: zone-less datetimes parse as local and
+    // date-only strings as UTC, so Date getters would show a shifted day in non-UTC zones.
+    const parseYmd = (dateString) => {
+      const m = typeof dateString === 'string' ? dateString.match(/^(\d{4})-(\d{2})-(\d{2})/) : null
+      return m ? { year: m[1], month: m[2], day: m[3] } : null
+    }
+
     const formatDate = (dateString) => {
+      if (!dateString || isNaN(new Date(dateString).getTime())) return '-'
+      const ymd = parseYmd(dateString)
+      if (ymd) {
+        const names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        return `${names[parseInt(ymd.month, 10) - 1]} ${parseInt(ymd.day, 10)}`
+      }
       return new Date(dateString).toLocaleDateString('en-US', {
         month: 'short',
-        day: 'numeric'
+        day: 'numeric',
+        timeZone: 'UTC'
       })
     }
 
     const formatDateShort = (dateString) => {
       const date = new Date(dateString)
-      const month = (date.getMonth() + 1).toString().padStart(2, '0')
-      const day = date.getDate().toString().padStart(2, '0')
-      const year = date.getFullYear().toString().slice(-2)
+      if (!dateString || isNaN(date.getTime())) return '-'
+      const ymd = parseYmd(dateString)
+      if (ymd) return `${ymd.month}/${ymd.day}/${ymd.year.slice(-2)}`
+      const month = (date.getUTCMonth() + 1).toString().padStart(2, '0')
+      const day = date.getUTCDate().toString().padStart(2, '0')
+      const year = date.getUTCFullYear().toString().slice(-2)
       return `${month}/${day}/${year}`
     }
 
@@ -449,7 +488,7 @@ export default {
 
     const handleTransactionClick = (transaction) => {
       console.log('Transaction clicked:', transaction)
-      alert(`Transaction Details:\n\nID: ${transaction.id}\nDescription: ${transaction.description}\nVendor: ${transaction.vendor}\nDate: ${formatDateShort(transaction.date)}\nAmount: $${transaction.amount.toLocaleString()}`)
+      alert(`Transaction Details:\n\nID: ${transaction.id}\nDescription: ${transaction.description}\nVendor: ${transaction.vendor}\nDate: ${formatDateShort(transaction.date)}\nAmount: ${formatCurrency(transaction.amount)}`)
     }
 
     const showCostDetail = (monthData) => {
@@ -475,6 +514,7 @@ export default {
       maxRevenueValue,
       formatCurrency,
       currencySymbol,
+      formatAxisK,
       getBarHeight,
       getRevenueBarHeight,
       formatDate,

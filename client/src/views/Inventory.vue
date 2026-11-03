@@ -60,8 +60,8 @@
                 <td>{{ translateCategory(item.category) }}</td>
                 <td><strong>{{ item.quantity_on_hand }}</strong></td>
                 <td>{{ item.reorder_point }}</td>
-                <td>{{ currencySymbol }}{{ item.unit_cost.toFixed(2) }}</td>
-                <td><strong>{{ currencySymbol }}{{ (item.quantity_on_hand * item.unit_cost).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</strong></td>
+                <td>{{ formatMoney(item.unit_cost, 2) }}</td>
+                <td><strong>{{ formatMoney(item.quantity_on_hand * item.unit_cost, 2) }}</strong></td>
                 <td>{{ translateWarehouse(item.location) }}</td>
                 <td>
                   <span :class="['badge', getStockStatusClass(item)]">
@@ -88,6 +88,7 @@ import { ref, onMounted, watch, computed } from 'vue'
 import { api } from '../api'
 import { useFilters } from '../composables/useFilters'
 import { useI18n } from '../composables/useI18n'
+import { formatCurrencyWithDecimals } from '../utils/currency'
 import InventoryDetailModal from '../components/InventoryDetailModal.vue'
 
 export default {
@@ -101,6 +102,10 @@ export default {
     const currencySymbol = computed(() => {
       return currentCurrency.value === 'JPY' ? '¥' : '$'
     })
+
+    // Display-only conversion (API values are USD)
+    const formatMoney = (amount, decimals = 0) =>
+      formatCurrencyWithDecimals(amount, currentCurrency.value, decimals)
 
     const loading = ref(true)
     const error = ref(null)
@@ -217,6 +222,7 @@ export default {
       selectedItem,
       showItemDetail,
       currencySymbol,
+      formatMoney,
       translateProductName,
       translateWarehouse
     }

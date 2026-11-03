@@ -69,13 +69,13 @@
 
               <div class="info-item">
                 <div class="info-label">Unit Cost</div>
-                <div class="info-value">{{ currencySymbol }}{{ inventoryItem.unit_cost.toFixed(2) }}</div>
+                <div class="info-value">{{ formatMoney(inventoryItem.unit_cost, 2) }}</div>
               </div>
 
               <div class="info-item">
                 <div class="info-label">Total Value</div>
                 <div class="info-value total-value">
-                  {{ currencySymbol }}{{ totalValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}
+                  {{ formatMoney(totalValue, 2) }}
                 </div>
               </div>
 
@@ -107,12 +107,13 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from '../composables/useI18n'
+import { formatCurrencyWithDecimals } from '../utils/currency'
 
 const { currentCurrency, translateProductName, translateWarehouse } = useI18n()
 
-const currencySymbol = computed(() => {
-  return currentCurrency.value === 'JPY' ? '¥' : '$'
-})
+// Display-only conversion (API values are USD); mirrors utils/currency.js
+const formatMoney = (amount, decimals = 0) =>
+  formatCurrencyWithDecimals(amount, currentCurrency.value, decimals)
 
 const props = defineProps({
   isOpen: {
