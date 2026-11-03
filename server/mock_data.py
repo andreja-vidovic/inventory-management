@@ -20,6 +20,10 @@ def load_json_file(filename):
 # Load all datasets from JSON files
 inventory_items = load_json_file('inventory.json')
 orders = load_json_file('orders.json')
+# NOTE: unit_cost, current_stock and lead_time_days in demand_forecasts.json are
+# PLACEHOLDER DEMO DATA added to drive the Restocking feature. They are not real
+# supplier figures and do not come from inventory.json (most forecast SKUs are
+# not in inventory).
 demand_forecasts = load_json_file('demand_forecasts.json')
 backlog_items = load_json_file('backlog_items.json')
 
@@ -34,6 +38,9 @@ recent_transactions = load_json_file('transactions.json')
 
 # Load purchase orders
 purchase_orders = load_json_file('purchase_orders.json')
+
+# Restocking orders submitted at runtime. In-memory only, so they reset on server restart.
+submitted_orders = []
 
 # All data is now loaded from JSON files in the data/ directory
 # This allows for easier maintenance and updates of the sample data

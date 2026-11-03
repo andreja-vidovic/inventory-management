@@ -6,6 +6,8 @@ export default {
     orders: 'Orders',
     finance: 'Finance',
     demandForecast: 'Demand Forecast',
+    restocking: 'Restocking',
+    reports: 'Reports',
     companyName: 'Catalyst Components',
     subtitle: 'Inventory Management System'
   },
@@ -112,6 +114,15 @@ export default {
     onTimeDelivery: 'On-Time Delivery',
     itemsCount: '{count} items',
     quantity: 'Qty',
+    submittedTitle: 'Submitted Orders',
+    submittedEmpty: 'No restocking orders have been submitted yet.',
+    submittedError: 'Failed to load submitted orders.',
+    submittedLoading: 'Loading submitted orders...',
+    submittedLeadTime: 'Estimated lead time',
+    submittedArrival: 'Expected arrival',
+    submittedDate: 'Submitted',
+    submittedTotal: 'Total cost',
+    leadTimeDays: '{count} days',
     table: {
       orderNumber: 'Order Number',
       orderId: 'Order ID',
@@ -191,6 +202,7 @@ export default {
   // Filters
   filters: {
     timePeriod: 'Time Period',
+    resetAll: 'Reset all filters',
     location: 'Location',
     category: 'Category',
     orderStatus: 'Order Status',
@@ -309,6 +321,33 @@ export default {
     english: 'English',
     japanese: 'Japanese',
     selectLanguage: 'Select Language'
+  },
+
+  // Restocking
+  restocking: {
+    title: 'Restocking',
+    description: 'Plan a restock order within a budget, prioritising items with rising demand',
+    budget: 'Budget',
+    budgetSlider: 'Restocking budget',
+    plannedSpend: 'Planned spend',
+    remaining: 'Remaining',
+    table: {
+      sku: 'SKU',
+      name: 'Item',
+      trend: 'Trend',
+      quantity: 'Quantity',
+      unitCost: 'Unit cost',
+      lineTotal: 'Line total',
+      leadTime: 'Estimated lead time'
+    },
+    days: '{count} days',
+    reduced: 'Reduced from {requested} to {quantity} to fit budget',
+    noItems: 'Move the slider to set a budget and see recommended items.',
+    placeOrder: 'Place Order',
+    submitting: 'Submitting...',
+    confirmation: 'Order {orderNumber} placed. Estimated lead time: {days} days. Expected arrival: {arrival}.',
+    loadError: 'Failed to load recommendations.',
+    submitError: 'Failed to place order.'
   },
 
   // Common

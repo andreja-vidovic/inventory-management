@@ -5,6 +5,8 @@ export default {
     inventory: '在庫',
     orders: '注文',
     finance: '財務',
+    restocking: '補充発注',
+    reports: 'レポート',
     demandForecast: '需要予測',
     companyName: '触媒コンポーネンツ',
     subtitle: '在庫管理システム'
@@ -112,6 +114,15 @@ export default {
     onTimeDelivery: '定時配達',
     itemsCount: '{count}件',
     quantity: '数量',
+    submittedTitle: '発注済みの注文',
+    submittedEmpty: '送信済みの補充注文はまだありません。',
+    submittedError: '発注済みの注文を読み込めませんでした。',
+    submittedLoading: '発注済みの注文を読み込み中...',
+    submittedLeadTime: '推定リードタイム',
+    submittedArrival: '到着予定日',
+    submittedDate: '送信日',
+    submittedTotal: '合計金額',
+    leadTimeDays: '{count}日',
     table: {
       orderNumber: '注文番号',
       orderId: '注文ID',
@@ -191,6 +202,7 @@ export default {
   // Filters
   filters: {
     timePeriod: '期間',
+    resetAll: 'すべてのフィルターをリセット',
     location: '場所',
     category: 'カテゴリ',
     orderStatus: '注文ステータス',
@@ -309,6 +321,33 @@ export default {
     english: 'English',
     japanese: '日本語',
     selectLanguage: '言語を選択'
+  },
+
+  // 補充発注
+  restocking: {
+    title: '補充発注',
+    description: '予算内で補充注文を計画します。需要が増加している品目を優先します',
+    budget: '予算',
+    budgetSlider: '補充予算',
+    plannedSpend: '計画支出',
+    remaining: '残額',
+    table: {
+      sku: 'SKU',
+      name: '品目',
+      trend: 'トレンド',
+      quantity: '数量',
+      unitCost: '単価',
+      lineTotal: '小計',
+      leadTime: '推定リードタイム'
+    },
+    days: '{count}日',
+    reduced: '予算に合わせて{requested}から{quantity}に減らしました',
+    noItems: 'スライダーで予算を設定すると、推奨品目が表示されます。',
+    placeOrder: '注文する',
+    submitting: '送信中...',
+    confirmation: '注文{orderNumber}を受け付けました。推定リードタイム: {days}日。到着予定日: {arrival}。',
+    loadError: '推奨内容を読み込めませんでした。',
+    submitError: '注文を送信できませんでした。'
   },
 
   // Common

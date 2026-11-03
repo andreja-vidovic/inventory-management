@@ -22,8 +22,11 @@
           <router-link to="/demand" :class="{ active: $route.path === '/demand' }">
             {{ t('nav.demandForecast') }}
           </router-link>
+          <router-link to="/restocking" :class="{ active: $route.path === '/restocking' }">
+            {{ t('nav.restocking') }}
+          </router-link>
           <router-link to="/reports" :class="{ active: $route.path === '/reports' }">
-            Reports
+            {{ t('nav.reports') }}
           </router-link>
         </nav>
         <LanguageSwitcher />
@@ -90,7 +93,12 @@ export default {
       try {
         apiTasks.value = await api.getTasks()
       } catch (err) {
-        console.error('Failed to load tasks:', err)
+        // /api/tasks has no backend yet (404): keep the mock tasks and stay
+        // quiet instead of logging an error on every page load. Real
+        // failures (network, 5xx) are still reported.
+        if (err?.response?.status !== 404) {
+          console.error('Failed to load tasks:', err)
+        }
       }
     }
 
